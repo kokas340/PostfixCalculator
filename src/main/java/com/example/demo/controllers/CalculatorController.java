@@ -1,22 +1,25 @@
 package com.example.demo.controllers;
 
-import com.example.demo.model.Token;
+import com.example.demo.model.TokenDTO;
 import com.example.demo.services.CalculatorServices;
 import com.example.demo.services.CalculatorServicesInterface;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 
 @RestController
 @RequestMapping("calculator")
 public class CalculatorController {
-    CalculatorServicesInterface cal= new CalculatorServices();
-    @GetMapping("")
-    public double evaluateExpression(ArrayList<Token> tokenList){
-        System.out.println(tokenList);
+
+    private final CalculatorServicesInterface cal;
+
+    public CalculatorController(CalculatorServices cs) {
+        this.cal = cs;
+    }
+    @PostMapping("")
+    public double evaluateExpression(@RequestBody ArrayList<TokenDTO> tokenList){
+
         return cal.getResult(tokenList);
     }
 }

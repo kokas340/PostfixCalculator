@@ -25,6 +25,8 @@ public class LinkedListStack {
         }
         return top.data;
     }
+
+    // Check if the stack is empty
     public boolean isEmpty() {
         return top == null;
     }

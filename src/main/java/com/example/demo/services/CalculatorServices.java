@@ -1,24 +1,18 @@
 package com.example.demo.services;
 
-import com.example.demo.model.LinkedListStack;
-import com.example.demo.model.Operand;
-import com.example.demo.model.Operator;
-import com.example.demo.model.Token;
+import com.example.demo.model.*;
+import org.springframework.stereotype.Service;
 
 
 import java.util.ArrayList;
 
+@Service
 public class CalculatorServices implements CalculatorServicesInterface{
     @Override
-    public double getResult(ArrayList<Token> tokenList) {
+    public double getResult(ArrayList<TokenDTO> tokenList) {
         LinkedListStack stack = new LinkedListStack();
-        ArrayList<Token> tokenList1 = new ArrayList<>();
-        tokenList1.add(new Operand(2));
-        tokenList1.add(new Operand(5));
-        tokenList1.add(new Operand(1));
-        tokenList1.add(new Operator('+'));
-        tokenList1.add(new Operator('+'));
-        for (Token token : tokenList1) {
+
+        for (TokenDTO token : tokenList) {
             if (token.isOperator()) {
                 char operator = token.getSymbol();
                 double operand2 = stack.pop().getValue();
