@@ -1,64 +1,60 @@
 package com.example.demo;
 
-import com.example.demo.services.CalculatorServices;
+
+import com.example.demo.model.TokenDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class PostfixCalculatorApplicationTests {
+class YourControllerClassTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 
-	@MockBean
-	private CalculatorServices calculatorServices;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Test
-	public void testValidExpressionController() throws Exception {
-		// Mock the CalculatorServices result for a valid expression
-		when(calculatorServices.getResult(new ArrayList<>())).thenReturn(10.0);
-
-		// Create an example valid expression as JSON
-		String requestBody = "[{\"value\": 2.0, \"operator\": false}, " +
-				"{\"value\": 3.0, \"operator\": false}, " +
-				"{\"symbol\": \"+\", \"operator\": true}]";
-
-		ResultActions resultActions = mockMvc.perform(post("/calculator")
-				.contentType("application/json")
-				.content(requestBody));
-
-		resultActions.andExpect(status().isOk())
-				.andExpect(content().string("10.0"));
+	void evaluateExpression() throws Exception {
+		List<TokenDTO> tokenList = new ArrayList<>();
+		tokenList.add(new TokenDTO(1,' ', false));
+		tokenList.add(new TokenDTO(1, ' ',false));
+		tokenList.add(new TokenDTO(0,'+', true));
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/calculator")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(tokenList)))
+				.andExpect(status().isOk())
+				.andReturn();
+		double response = Double.parseDouble(result.getResponse().getContentAsString());
+		assertEquals(2, response);
 	}
-
 	@Test
-	public void testInvalidExpressionController() throws Exception {
-		// Mock the CalculatorServices result for an invalid expression
-		when(calculatorServices.getResult(new ArrayList<>()))
-				.thenThrow(new ArithmeticException("Division by zero is not allowed"));
-
-		// Create an example invalid expression as JSON
-		String requestBody = "[{\"value\": 2.0, \"operator\": false}, " +
-				"{\"value\": 0.0, \"operator\": false}, " +
-				"{\"symbol\": \"/\", \"operator\": true}]";
-
-		ResultActions resultActions = mockMvc.perform(post("/calculator")
-				.contentType("application/json")
-				.content(requestBody));
-
-		resultActions.andExpect(status().isInternalServerError());
+	void evaluateExpressionWithEmptyStack() throws Exception {
+		List<TokenDTO> tokenList = new ArrayList<>();
+		mockMvc.perform(MockMvcRequestBuilders.post("/calculator")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(tokenList)))
+				.andExpect(result -> {
+					Throwable error = result.getResolvedException();
+					assertTrue(error instanceof RuntimeException);
+					assertEquals("Stack is empty", error.getMessage());
+				});
 	}
 }

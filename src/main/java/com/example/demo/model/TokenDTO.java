@@ -12,6 +12,7 @@ public class TokenDTO {
         this.operator = operator;
     }
 
+
     public double getValue() {
         return value;
     }
